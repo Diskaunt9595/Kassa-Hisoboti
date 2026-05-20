@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Diskaunt Navoiy — Kassa</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=IBM+Plex+Sans:wght@400;600;700;800&display=swap');
+
+  :root {
+    --green: #10b981;
+    --green-dark: #065f46;
+    --green-light: #d1fae5;
+    --orange: #f97316;
+    --orange-dark: #7c2d12;
+    --orange-light: #fff7ed;
+    --navy: #0f172a;
+    --navy2: #1e293b;
+    --slate: #64748b;
+    --border: #e2e8f0;
+    --bg: #f8fafc;
+    --white: #ffffff;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--navy2); min-height: 100vh; }
+
+  /* ── Layout ── */
+  .app { max-width: 500px; margin: 0 auto; min-height: 100vh; position: relative; background: var(--bg); }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+    padding: 16px 18px 14px;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.22);
+  }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .header h1 { font-size: 15px; font-weight: 800; color: #f1f5f9; letter-spacing: 0.3px; }
+  .header .sub { font-size: 11px; color: #475569; margin-top: 1px; }
+  .header .balans { text-align: right; }
+  .header .balans-label { font-size: 10px; color: #475569; font-family: var(--mono); }
+  .header .balans-sum { font-size: 16px; font-weight: 800; font-family: var(--mono); }
+  .header .balans-sum.ijobiy { color: #34d399; }
+  .header .balans-sum.salbiy { color: #f87171; }
+
+  /* ── Nav ── */
+  .nav {
+    display: flex; margin-top: 12px; gap: 4px;
+  }
+  .nav-btn {
+    flex: 1; padding: 7px 4px; border: none; border-radius: 8px;
+    font-family: var(--sans); font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: all 0.18s; color: #64748b; background: rgba(255,255,255,0.06);
+  }
+  .nav-btn.active { background: var(--green); color: white; }
+
+  /* ── Sahifalar ── */
+  .page { display: none; padding: 16px 16px 90px; }
+  .page.active { display: block; }
+
+  /* ── Stat kartalar ── */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .stat-card { background: var(--white); border-radius: 14px; padding: 12px 10px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+  .stat-card .s-label { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--slate); }
+  .stat-card .s-val { font-size: 13px; font-weight: 900; font-family: var(--mono); margin-top: 4px; }
+  .stat-card .s-val.k { color: var(--green-dark); }
+  .stat-card .s-val.ch { color: var(--orange-dark); }
+  .stat-card .s-val.f { color: #1d4ed8; }
+
+  /* ── Kirim/Chiqim tugmalar ── */
+  .tez-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .tez-btn {
+    border-radius: 16px; border: 2px solid; padding: 18px 10px;
+    cursor: pointer; text-align: center; transition: transform 0.1s;
+  }
+  .tez-btn:active { transform: scale(0.97); }
+  .tez-btn.k { background: var(--green-light); border-color: var(--green); }
+  .tez-btn.ch { background: var(--orange-light); border-color: var(--orange); }
+  .tez-btn .t-icon { font-size: 28px; }
+  .tez-btn .t-name { font-size: 14px; font-weight: 800; margin-top: 4px; }
+  .tez-btn.k .t-name { color: var(--green-dark); }
+  .tez-btn.ch .t-name { color: var(--orange-dark); }
+  .tez-btn .t-hint { font-size: 11px; margin-top: 2px; }
+  .tez-btn.k .t-hint { color: #6ee7b7; }
+  .tez-btn.ch .t-hint { color: #fdba74; }
+
+  /* ── Son'ggi yozuvlar ── */
+  .section-title { font-size: 13px; font-weight: 800; color: var(--navy2); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .section-title a { font-size: 12px; font-weight: 600; color: var(--green-dark); cursor: pointer; text-decoration: none; }
+
+  .yozuv-karta {
+    background: var(--white); border-radius: 13px; padding: 12px 14px;
+    margin-bottom: 8px; border-left: 4px solid;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06); cursor: pointer;
+    transition: box-shadow 0.15s;
+  }
+  .yozuv-karta.k { border-color: var(--green); }
+  .yozuv-karta.ch { border-color: var(--orange); }
+  .yozuv-karta:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+  .yk-top { display: flex; align-items: center; gap: 10px; }
+  .yk-icon { font-size: 20px; }
+  .yk-body { flex: 1; }
+  .yk-row1 { display: flex; justify-content: space-between; align-items: center; }
+  .yk-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+  .yk-badge.k { background: var(--green-light); color: var(--green-dark); }
+  .yk-badge.ch { background: var(--orange-light); color: var(--orange-dark); }
+  .yk-sum { font-size: 15px; font-weight: 900; font-family: var(--mono); }
+  .yk-sum.k { color: var(--green-dark); }
+  .yk-sum.ch { color: var(--orange-dark); }
+  .yk-row2 { display: flex; justify-content: space-between; margin-top: 4px; }
+  .yk-meta { font-size: 11px; color: var(--slate); }
+  .yk-izoh { font-size: 11px; color: #94a3b8; font-style: italic; max-width: 55%; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .yk-delete { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); justify-content: flex-end; }
+  .yk-delete.show { display: flex; }
+  .del-btn { background: #fee2e2; border: none; border-radius: 8px; padding: 6px 14px; color: #dc2626; font-weight: 700; font-size: 12px; cursor: pointer; font-family: var(--sans); }
+
+  /* ── Forma ── */
+  .forma-wrap { background: var(--white); border-radius: 18px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
+  .forma-title { font-size: 17px; font-weight: 900; color: var(--navy2); margin-bottom: 18px; }
+
+  .tur-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+  .tur-btn { padding: 13px 0; border-radius: 12px; border: 2px solid; font-family: var(--sans); font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.15s; }
+  .tur-btn.k-off { border-color: var(--border); background: var(--bg); color: #94a3b8; }
+  .tur-btn.k-on { border-color: var(--green); background: var(--green-light); color: var(--green-dark); }
+  .tur-btn.ch-off { border-color: var(--border); background: var(--bg); color: #94a3b8; }
+  .tur-btn.ch-on { border-color: var(--orange); background: var(--orange-light); color: var(--orange-dark); }
+
+  .label { font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 6px; margin-top: 14px; display: block; }
+  .inp {
+    width: 100%; padding: 12px 14px; border-radius: 11px;
+    border: 1.5px solid var(--border); font-size: 15px;
+    color: var(--navy2); background: var(--bg);
+    font-family: var(--sans); outline: none; transition: border-color 0.15s;
+  }
+  .inp:focus { border-color: var(--green); }
+  .inp-summa { font-size: 26px; font-weight: 900; text-align: center; font-family: var(--mono); letter-spacing: -1px; }
+  .summa-preview { text-align: center; color: var(--slate); font-size: 13px; margin-top: -8px; margin-bottom: 4px; font-family: var(--mono); }
+
+  .kat-grid { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 4px; }
+  .kat-btn { padding: 7px 13px; border-radius: 18px; border: 1.5px solid; font-family: var(--sans); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.12s; }
+  .kat-off { border-color: var(--border); background: var(--bg); color: #64748b; }
+  .kat-on-k { border-color: var(--green); background: var(--green-light); color: var(--green-dark); font-weight: 800; }
+  .kat-on-ch { border-color: var(--orange); background: var(--orange-light); color: var(--orange-dark); font-weight: 800; }
+
+  .tolov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tolov-btn { padding: 11px 0; border-radius: 11px; border: 1.5px solid; font-family: var(--sans); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.12s; }
+  .tv-off { border-color: var(--border); background: var(--bg); color: #94a3b8; }
+  .tv-on { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
+
+  .saqlash-btn {
+    width: 100%; padding: 16px; border-radius: 13px; border: none;
+    font-family: var(--sans); font-weight: 900; font-size: 16px; cursor: pointer;
+    margin-top: 18px; transition: opacity 0.15s, transform 0.1s;
+    letter-spacing: 0.3px;
+  }
+  .saqlash-btn:active { transform: scale(0.98); }
+  .saqlash-btn.k { background: linear-gradient(135deg, #059669, #10b981); color: white; box-shadow: 0 6px 20px rgba(16,185,129,0.35); }
+  .saqlash-btn.ch { background: linear-gradient(135deg, #ea580c, #f97316); color: white; box-shadow: 0 6px 20px rgba(249,115,22,0.35); }
+  .saqlash-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .xato { background: #fee2e2; color: #dc2626; border-radius: 10px; padding: 10px 14px; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .muvaffaqiyat { background: var(--green-light); color: var(--green-dark); border-radius: 10px; padding: 14px; font-size: 15px; font-weight: 800; text-align: center; }
+
+  /* ── Hisobot ── */
+  .filtr-row { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 12px; }
+  .filtr-btn { padding: 6px 13px; border-radius: 18px; border: 1.5px solid; font-family: var(--sans); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.12s; }
+  .f-off { border-color: var(--border); background: var(--white); color: var(--slate); }
+  .f-on { border-color: var(--green); background: var(--green-light); color: var(--green-dark); }
+
+  .hisobot-stat { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .h-stat { border-radius: 11px; padding: 10px 8px; text-align: center; }
+  .h-stat.k { background: var(--green-light); }
+  .h-stat.ch { background: var(--orange-light); }
+  .h-stat.f { background: #eff6ff; }
+  .h-stat .hs-label { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .h-stat.k .hs-label { color: var(--green-dark); }
+  .h-stat.ch .hs-label { color: var(--orange-dark); }
+  .h-stat.f .hs-label { color: #1d4ed8; }
+  .h-stat .hs-val { font-size: 13px; font-weight: 900; font-family: var(--mono); margin-top: 3px; }
+  .h-stat.k .hs-val { color: var(--green-dark); }
+  .h-stat.ch .hs-val { color: var(--orange-dark); }
+  .h-stat.f .hs-val { color: #1d4ed8; }
+
+  .empty { text-align: center; padding: 40px 20px; background: var(--white); border-radius: 14px; color: #94a3b8; font-size: 14px; }
+
+  /* ── Sync indicator ── */
+  .sync-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+    margin-top: 6px;
+  }
+  .sync-badge.syncing { background: #fef3c7; color: #92400e; }
+  .sync-badge.ok { background: var(--green-light); color: var(--green-dark); }
+  .sync-badge.err { background: #fee2e2; color: #dc2626; }
+  .sync-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .sync-dot.syncing { background: #f59e0b; animation: pulse 1s infinite; }
+  .sync-dot.ok { background: var(--green); }
+  .sync-dot.err { background: #dc2626; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  select.inp { appearance: none; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <h1>🏪 Diskaunt Navoiy</h1>
+        <div class="sub">Kassa Hisoboti</div>
+        <div id="syncBadge" class="sync-badge ok">
+          <div class="sync-dot ok"></div>
+          <span>Tayyor</span>
+        </div>
+      </div>
+      <div class="balans">
+        <div class="balans-label">SOF FOYDA</div>
+        <div id="balansSum" class="balans-sum ijobiy">0</div>
+        <div style="font-size:10px;color:#475569;font-family:var(--mono)">UZS</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn active" onclick="sahifa('bosh')">🏠 Bosh</button>
+      <button class="nav-btn" onclick="sahifa('qosh')">➕ Qo'shish</button>
+      <button class="nav-btn" onclick="sahifa('hisobot')">📋 Hisobot</button>
+    </nav>
+  </div>
+
+  <!-- BOSH SAHIFA -->
+  <div id="p-bosh" class="page active">
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="s-label">Kirim</div>
+        <div id="statKirim" class="s-val k">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-label">Chiqim</div>
+        <div id="statChiqim" class="s-val ch">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-label">Foyda</div>
+        <div id="statFoyda" class="s-val f">0</div>
+      </div>
+    </div>
+
+    <div class="tez-grid">
+      <div class="tez-btn k" onclick="tezQosh('kirim')">
+        <div class="t-icon">⬆️</div>
+        <div class="t-name">KIRIM</div>
+        <div class="t-hint">Daromad kiritish</div>
+      </div>
+      <div class="tez-btn ch" onclick="tezQosh('chiqim')">
+        <div class="t-icon">⬇️</div>
+        <div class="t-name">CHIQIM</div>
+        <div class="t-hint">Xarajat kiritish</div>
+      </div>
+    </div>
+
+    <div class="section-title">
+      🕐 So'nggi yozuvlar
+      <a onclick="sahifa('hisobot')">Barchasi →</a>
+    </div>
+    <div id="boshYozuvlar"></div>
+  </div>
+
+  <!-- QO'SHISH SAHIFA -->
+  <div id="p-qosh" class="page">
+    <div class="forma-wrap">
+      <div class="forma-title" id="formaTur">⬆️ Kirim qo'shish</div>
+
+      <div class="tur-grid">
+        <button id="btnKirim" class="tur-btn k-on" onclick="turTanla('kirim')">⬆ KIRIM</button>
+        <button id="btnChiqim" class="tur-btn ch-off" onclick="turTanla('chiqim')">⬇ CHIQIM</button>
+      </div>
+
+      <label class="label">📅 Sana</label>
+      <input type="date" id="fSana" class="inp">
+
+      <label class="label">📂 Kategoriya</label>
+      <div id="katGrid" class="kat-grid"></div>
+
+      <label class="label">💳 To'lov turi</label>
+      <div class="tolov-grid">
+        <button id="btnNaqd" class="tolov-btn tv-on" onclick="tolovTanla('NAQD')">💵 NAQD</button>
+        <button id="btnKarta" class="tolov-btn tv-off" onclick="tolovTanla('KARTA')">💳 KARTA</button>
+      </div>
+
+      <label class="label">💰 Summa (so'm)</label>
+      <input type="number" inputmode="numeric" id="fSumma" class="inp inp-summa" placeholder="0" oninput="summaPrev()">
+      <div id="summaPrev" class="summa-preview"></div>
+
+      <label class="label">📝 Izoh (ixtiyoriy)</label>
+      <input type="text" id="fIzoh" class="inp" placeholder="Masalan: Hamiddan qarz qaytdi">
+
+      <div id="formaXato" class="xato" style="display:none;margin-top:14px"></div>
+      <div id="formaMuv" class="muvaffaqiyat" style="display:none;margin-top:14px"></div>
+
+      <button id="saqlashBtn" class="saqlash-btn k" onclick="saqlash()">💾 SAQLASH</button>
+    </div>
+  </div>
+
+  <!-- HISOBOT SAHIFA -->
+  <div id="p-hisobot" class="page">
+    <div class="filtr-row" id="filtrTurRow">
+      <button class="filtr-btn f-on" data-val="hammasi" onclick="filtrTur(this)">Hammasi</button>
+      <button class="filtr-btn f-off" data-val="kirim" onclick="filtrTur(this)">⬆ Kirim</button>
+      <button class="filtr-btn f-off" data-val="chiqim" onclick="filtrTur(this)">⬇ Chiqim</button>
+    </div>
+    <div class="filtr-row" id="filtrOyRow"></div>
+    <div class="hisobot-stat">
+      <div class="h-stat k"><div class="hs-label">Kirim</div><div id="hStatK" class="hs-val">0</div></div>
+      <div class="h-stat ch"><div class="hs-label">Chiqim</div><div id="hStatCh" class="hs-val">0</div></div>
+      <div class="h-stat f"><div class="hs-label">Jami</div><div id="hStatJ" class="hs-val">0 ta</div></div>
+    </div>
+    <div id="hisobotYozuvlar"></div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyYL6QZR1sdGTU_9s-LeEI5s4_xN6GVqiIXQpoptbAtYvgFSEhspWZyxlQf9sEKk773dA/exec';
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+const KATEGORIYALAR = {
+  kirim: ['Daromad', 'Boshqa kirim'],
+  chiqim: ['Tushlik', 'Ish haqi', 'Tovarga', "Boshqa to'lovlar", "Kommunal to'lov", "Yo'l kira", 'Reklama xarajatlari', 'Cargo xizmati', 'Internet']
+};
+
+let state = {
+  tur: 'kirim',
+  kategoriya: 'Daromad',
+  tolov: 'NAQD',
+  filtrTur: 'hammasi',
+  filtrOy: '',
+  yozuvlar: [],
+  ochiqId: null
+};
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+window.onload = () => {
+  document.getElementById('fSana').value = bugun();
+  katlarni_korsatish();
+  localdan_yuklash();
+  sahifani_yangilash();
+  // Sheets dan yuklash
+  sheetsdan_yuklash();
+};
+
+function bugun() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// ═══════════════════════════════════════════
+// LOCAL STORAGE
+// ═══════════════════════════════════════════
+function localga_saqlash() {
+  localStorage.setItem('dn_yozuvlar', JSON.stringify(state.yozuvlar));
+}
+
+function localdan_yuklash() {
+  try {
+    const d = localStorage.getItem('dn_yozuvlar');
+    if (d) state.yozuvlar = JSON.parse(d);
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════
+// GOOGLE SHEETS (Apps Script orqali)
+// ═══════════════════════════════════════════
+async function sheetsga_yozish(yozuv) {
+  syncHolat('syncing', '⏳ Saqlanmoqda...');
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        sana: yozuv.sana,
+        tur: yozuv.tur === 'kirim' ? 'Kirim' : 'Chiqim',
+        kategoriya: yozuv.kategoriya,
+        tolov: yozuv.tolov,
+        summa: yozuv.summa,
+        izoh: yozuv.izoh || ''
+      })
+    });
+    syncHolat('ok', '✅ Google Sheets ga saqlandi');
+    setTimeout(() => syncHolat('ok', '✅ Tayyor'), 3000);
+  } catch(e) {
+    console.error(e);
+    syncHolat('err', '❌ Internet xatolik — local saqlandi');
+    setTimeout(() => syncHolat('ok', '✅ Tayyor'), 4000);
+  }
+}
+
+async function sheetsdan_yuklash() {
+  try {
+    syncHolat('syncing', '⏳ Yuklanmoqda...');
+    const resp = await fetch(APPS_SCRIPT_URL);
+    const data = await resp.json();
+    if (data.data && data.data.length > 0) {
+      const sheetYozuvlar = data.data
+        .filter(r => r.sana && r.summa)
+        .map((r, i) => ({
+          id: 'sheet_' + i + '_' + r.sana,
+          sana: r.sana || '',
+          tur: (r.tur || '').toLowerCase() === 'kirim' ? 'kirim' : 'chiqim',
+          kategoriya: r.kategoriya || '',
+          tolov: r.tolov || 'NAQD',
+          summa: parseFloat(r.summa) || 0,
+          izoh: r.izoh || ''
+        }));
+      const localyangi = state.yozuvlar.filter(y => !y.id.toString().startsWith('sheet_'));
+      state.yozuvlar = [...localyangi, ...sheetYozuvlar];
+      state.yozuvlar.sort((a,b) => b.sana.localeCompare(a.sana));
+      localga_saqlash();
+      sahifani_yangilash();
+    }
+    syncHolat('ok', '✅ Tayyor');
+  } catch(e) {
+    syncHolat('err', '⚠️ Offline rejim');
+    setTimeout(() => syncHolat('ok', '✅ Tayyor'), 3000);
+  }
+}
+
+function syncHolat(holat, matn) {
+  const badge = document.getElementById('syncBadge');
+  const dot = badge.querySelector('.sync-dot');
+  badge.className = `sync-badge ${holat}`;
+  dot.className = `sync-dot ${holat}`;
+  badge.querySelector('span').textContent = matn;
+}
+
+// ═══════════════════════════════════════════
+// NAVIGATSIYA
+// ═══════════════════════════════════════════
+function sahifa(nom) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('p-' + nom).classList.add('active');
+  const navBtnlar = document.querySelectorAll('.nav-btn');
+  const nomMap = { bosh: 0, qosh: 1, hisobot: 2 };
+  navBtnlar[nomMap[nom]].classList.add('active');
+  if (nom === 'hisobot') hisobotni_yangilash();
+}
+
+function tezQosh(tur) {
+  turTanla(tur);
+  sahifa('qosh');
+}
+
+// ═══════════════════════════════════════════
+// FORMA
+// ═══════════════════════════════════════════
+function turTanla(tur) {
+  state.tur = tur;
+  state.kategoriya = KATEGORIYALAR[tur][0];
+  document.getElementById('formaTur').textContent = tur === 'kirim' ? '⬆️ Kirim qo\'shish' : '⬇️ Chiqim qo\'shish';
+  document.getElementById('btnKirim').className = tur === 'kirim' ? 'tur-btn k-on' : 'tur-btn k-off';
+  document.getElementById('btnChiqim').className = tur === 'chiqim' ? 'tur-btn ch-on' : 'tur-btn ch-off';
+  const sBtn = document.getElementById('saqlashBtn');
+  sBtn.className = 'saqlash-btn ' + (tur === 'kirim' ? 'k' : 'ch');
+  katlarni_korsatish();
+}
+
+function katlarni_korsatish() {
+  const grid = document.getElementById('katGrid');
+  grid.innerHTML = '';
+  KATEGORIYALAR[state.tur].forEach(k => {
+    const btn = document.createElement('button');
+    btn.className = 'kat-btn ' + (k === state.kategoriya ? 'kat-on-' + state.tur[0] : 'kat-off');
+    btn.textContent = k;
+    btn.onclick = () => { state.kategoriya = k; katlarni_korsatish(); };
+    grid.appendChild(btn);
+  });
+}
+
+function tolovTanla(t) {
+  state.tolov = t;
+  document.getElementById('btnNaqd').className = 'tolov-btn ' + (t === 'NAQD' ? 'tv-on' : 'tv-off');
+  document.getElementById('btnKarta').className = 'tolov-btn ' + (t === 'KARTA' ? 'tv-on' : 'tv-off');
+}
+
+function summaPrev() {
+  const val = document.getElementById('fSumma').value;
+  const el = document.getElementById('summaPrev');
+  if (val && !isNaN(val) && Number(val) > 0) {
+    el.textContent = Number(val).toLocaleString('uz-UZ') + ' so\'m';
+  } else {
+    el.textContent = '';
+  }
+}
+
+async function saqlash() {
+  const summa = parseFloat(document.getElementById('fSumma').value);
+  const sana = document.getElementById('fSana').value;
+  const izoh = document.getElementById('fIzoh').value.trim();
+
+  document.getElementById('formaXato').style.display = 'none';
+  document.getElementById('formaMuv').style.display = 'none';
+
+  if (!summa || summa <= 0) {
+    document.getElementById('formaXato').textContent = '⚠️ Summa to\'g\'ri kiritilmadi!';
+    document.getElementById('formaXato').style.display = 'block';
+    return;
+  }
+  if (!sana) {
+    document.getElementById('formaXato').textContent = '⚠️ Sana tanlanmadi!';
+    document.getElementById('formaXato').style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('saqlashBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Saqlanmoqda...';
+
+  const yozuv = {
+    id: Date.now(),
+    sana, tur: state.tur,
+    kategoriya: state.kategoriya,
+    tolov: state.tolov,
+    summa, izoh
+  };
+
+  state.yozuvlar.unshift(yozuv);
+  localga_saqlash();
+  sahifani_yangilash();
+
+  // Google Sheets ga yozish
+  await sheetsga_yozish(yozuv);
+
+  // Formani tozalash
+  document.getElementById('fSumma').value = '';
+  document.getElementById('fIzoh').value = '';
+  document.getElementById('summaPrev').textContent = '';
+  document.getElementById('formaMuv').textContent = '✅ Muvaffaqiyatli saqlandi! Google Sheets ga yuborildi.';
+  document.getElementById('formaMuv').style.display = 'block';
+
+  btn.disabled = false;
+  btn.textContent = '💾 SAQLASH';
+  btn.className = 'saqlash-btn ' + (state.tur === 'kirim' ? 'k' : 'ch');
+
+  setTimeout(() => {
+    document.getElementById('formaMuv').style.display = 'none';
+    sahifa('bosh');
+  }, 1800);
+}
+
+// ═══════════════════════════════════════════
+// STATISTIKA & KO'RINISH
+// ═══════════════════════════════════════════
+function sahifani_yangilash() {
+  const k = state.yozuvlar.filter(y => y.tur === 'kirim').reduce((s,y) => s+y.summa, 0);
+  const ch = state.yozuvlar.filter(y => y.tur === 'chiqim').reduce((s,y) => s+y.summa, 0);
+  const f = k - ch;
+
+  document.getElementById('statKirim').textContent = k.toLocaleString('uz-UZ');
+  document.getElementById('statChiqim').textContent = ch.toLocaleString('uz-UZ');
+  document.getElementById('statFoyda').textContent = f.toLocaleString('uz-UZ');
+
+  const bSum = document.getElementById('balansSum');
+  bSum.textContent = (f >= 0 ? '+' : '') + f.toLocaleString('uz-UZ');
+  bSum.className = 'balans-sum ' + (f >= 0 ? 'ijobiy' : 'salbiy');
+
+  // Bosh sahifa yozuvlar
+  const el = document.getElementById('boshYozuvlar');
+  if (state.yozuvlar.length === 0) {
+    el.innerHTML = '<div class="empty">Hali yozuv yo\'q.<br><small>Kirim yoki chiqim qo\'shing 👆</small></div>';
+  } else {
+    el.innerHTML = state.yozuvlar.slice(0, 6).map(y => yozuvHTML(y)).join('');
+  }
+}
+
+function yozuvHTML(y) {
+  const cls = y.tur === 'kirim' ? 'k' : 'ch';
+  const sign = y.tur === 'kirim' ? '+' : '-';
+  const ochiq = state.ochiqId === y.id;
+  return `
+    <div class="yozuv-karta ${cls}" onclick="kartaTog(${JSON.stringify(y.id)})">
+      <div class="yk-top">
+        <div class="yk-icon">${y.tur === 'kirim' ? '⬆️' : '⬇️'}</div>
+        <div class="yk-body">
+          <div class="yk-row1">
+            <span class="yk-badge ${cls}">${y.kategoriya}</span>
+            <span class="yk-sum ${cls}">${sign}${Number(y.summa).toLocaleString('uz-UZ')}</span>
+          </div>
+          <div class="yk-row2">
+            <span class="yk-meta">📅 ${y.sana} · ${y.tolov}</span>
+            ${y.izoh ? `<span class="yk-izoh">"${y.izoh}"</span>` : ''}
+          </div>
+        </div>
+      </div>
+      <div class="yk-delete ${ochiq ? 'show' : ''}" onclick="event.stopPropagation()">
+        <button class="del-btn" onclick="ochirish(${JSON.stringify(y.id)})">🗑 O'chirish</button>
+      </div>
+    </div>`;
+}
+
+function kartaTog(id) {
+  state.ochiqId = state.ochiqId === id ? null : id;
+  sahifani_yangilash();
+  hisobotni_yangilash();
+}
+
+function ochirish(id) {
+  if (!confirm("O'chirishni tasdiqlaysizmi?")) return;
+  state.yozuvlar = state.yozuvlar.filter(y => y.id !== id);
+  state.ochiqId = null;
+  localga_saqlash();
+  sahifani_yangilash();
+  hisobotni_yangilash();
+}
+
+// ═══════════════════════════════════════════
+// HISOBOT
+// ═══════════════════════════════════════════
+function filtrTur(btn) {
+  state.filtrTur = btn.dataset.val;
+  document.querySelectorAll('#filtrTurRow .filtr-btn').forEach(b => {
+    b.className = 'filtr-btn ' + (b === btn ? 'f-on' : 'f-off');
+  });
+  hisobotni_yangilash();
+}
+
+function filtrOyTanla(btn, oy) {
+  state.filtrOy = oy;
+  document.querySelectorAll('#filtrOyRow .filtr-btn').forEach(b => b.className = 'filtr-btn f-off');
+  btn.className = 'filtr-btn f-on';
+  hisobotni_yangilash();
+}
+
+function hisobotni_yangilash() {
+  // Oylar ro'yxati
+  const oySet = new Set(state.yozuvlar.map(y => y.sana.slice(0,7)));
+  const oylar = [...oySet].sort().reverse();
+  const oyRow = document.getElementById('filtrOyRow');
+  oyRow.innerHTML = `<button class="filtr-btn ${!state.filtrOy ? 'f-on' : 'f-off'}" onclick="filtrOyTanla(this,'')">Barcha oylar</button>`;
+  oylar.forEach(oy => {
+    const d = new Date(oy + '-01');
+    const nom = d.toLocaleDateString('uz-UZ', {month:'short', year:'numeric'});
+    oyRow.innerHTML += `<button class="filtr-btn ${state.filtrOy===oy?'f-on':'f-off'}" onclick="filtrOyTanla(this,'${oy}')">${nom}</button>`;
+  });
+
+  // Filtrlash
+  const fil = state.yozuvlar.filter(y => {
+    if (state.filtrTur !== 'hammasi' && y.tur !== state.filtrTur) return false;
+    if (state.filtrOy && !y.sana.startsWith(state.filtrOy)) return false;
+    return true;
+  });
+
+  const fk = fil.filter(y=>y.tur==='kirim').reduce((s,y)=>s+y.summa,0);
+  const fch = fil.filter(y=>y.tur==='chiqim').reduce((s,y)=>s+y.summa,0);
+  document.getElementById('hStatK').textContent = fk.toLocaleString('uz-UZ');
+  document.getElementById('hStatCh').textContent = fch.toLocaleString('uz-UZ');
+  document.getElementById('hStatJ').textContent = fil.length + ' ta';
+
+  const el = document.getElementById('hisobotYozuvlar');
+  if (fil.length === 0) {
+    el.innerHTML = '<div class="empty">Bu filtr bo\'yicha yozuv topilmadi</div>';
+  } else {
+    el.innerHTML = fil.map(y => yozuvHTML(y)).join('');
+  }
+}
+</script>
+</body>
+</html>
