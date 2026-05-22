@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Diskaunt Navoiy — Kassa</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=IBM+Plex+Sans:wght@400;600;700;800&display=swap');
+  :root{--green:#10b981;--green-dark:#065f46;--green-light:#d1fae5;--orange:#f97316;--orange-dark:#7c2d12;--orange-light:#fff7ed;--navy:#0f172a;--navy2:#1e293b;--slate:#64748b;--border:#e2e8f0;--bg:#f8fafc;--white:#ffffff;--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--navy2);min-height:100vh}
+  .app{max-width:100%;margin:0 auto;min-height:100vh;background:var(--bg)}
+  @media(min-width:600px){.app{max-width:700px;margin:0 auto}}
+  @media(min-width:1000px){.app{max-width:900px;margin:0 auto}}
+  .header{background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:14px 16px 12px;position:sticky;top:0;z-index:100;box-shadow:0 4px 24px rgba(0,0,0,.22)}
+  .header-top{display:flex;justify-content:space-between;align-items:flex-start}
+  .header h1{font-size:14px;font-weight:800;color:#f1f5f9}
+  .header .sub{font-size:10px;color:#475569;margin-top:1px}
+  .balans{text-align:right}
+  .balans-label{font-size:9px;color:#475569;font-family:var(--mono)}
+  .balans-sum{font-size:15px;font-weight:800;font-family:var(--mono)}
+  .balans-sum.ijobiy{color:#34d399}.balans-sum.salbiy{color:#f87171}
+  .nav{display:flex;margin-top:10px;gap:3px}
+  .nav-btn{flex:1;padding:6px 2px;border:none;border-radius:7px;font-family:var(--sans);font-size:10px;font-weight:700;cursor:pointer;color:#64748b;background:rgba(255,255,255,.06)}
+  .nav-btn.active{background:var(--green);color:white}
+  .page{display:none;padding:14px 14px 90px}.page.active{display:block}
+  /* STAT */
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+  .stat-card{background:var(--white);border-radius:12px;padding:10px 8px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .s-label{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--slate)}
+  .s-val{font-size:12px;font-weight:900;font-family:var(--mono);margin-top:3px}
+  .s-val.k{color:var(--green-dark)}.s-val.ch{color:var(--orange-dark)}.s-val.f{color:#1d4ed8}
+  /* TEZ */
+  .tez-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .tez-btn{border-radius:14px;border:2px solid;padding:16px 8px;cursor:pointer;text-align:center}
+  .tez-btn.k{background:var(--green-light);border-color:var(--green)}
+  .tez-btn.ch{background:var(--orange-light);border-color:var(--orange)}
+  .t-icon{font-size:26px}.t-name{font-size:13px;font-weight:800;margin-top:3px}
+  .tez-btn.k .t-name{color:var(--green-dark)}.tez-btn.ch .t-name{color:var(--orange-dark)}
+  .t-hint{font-size:10px;margin-top:2px}
+  .tez-btn.k .t-hint{color:#6ee7b7}.tez-btn.ch .t-hint{color:#fdba74}
+  /* YOZUV */
+  .section-title{font-size:12px;font-weight:800;color:var(--navy2);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+  .section-title a{font-size:11px;font-weight:600;color:var(--green-dark);cursor:pointer}
+  .yozuv-karta{background:var(--white);border-radius:12px;padding:11px 12px;margin-bottom:7px;border-left:4px solid;box-shadow:0 1px 6px rgba(0,0,0,.06);cursor:pointer}
+  .yozuv-karta.k{border-color:var(--green)}.yozuv-karta.ch{border-color:var(--orange)}
+  .yk-top{display:flex;align-items:center;gap:8px}
+  .yk-icon{font-size:18px}.yk-body{flex:1}
+  .yk-row1{display:flex;justify-content:space-between;align-items:center}
+  .yk-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:9px}
+  .yk-badge.k{background:var(--green-light);color:var(--green-dark)}
+  .yk-badge.ch{background:var(--orange-light);color:var(--orange-dark)}
+  .yk-sum{font-size:14px;font-weight:900;font-family:var(--mono)}
+  .yk-sum.k{color:var(--green-dark)}.yk-sum.ch{color:var(--orange-dark)}
+  .yk-row2{display:flex;justify-content:space-between;margin-top:3px}
+  .yk-meta{font-size:10px;color:var(--slate)}
+  .yk-izoh{font-size:10px;color:#94a3b8;font-style:italic;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .yk-delete{display:none;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);justify-content:space-between;align-items:center;gap:8px}
+  .yk-delete.show{display:flex}
+  .del-btn{background:#fee2e2;border:none;border-radius:7px;padding:5px 12px;color:#dc2626;font-weight:700;font-size:11px;cursor:pointer}
+  .edit-btn{background:#eff6ff;border:none;border-radius:7px;padding:5px 12px;color:#1d4ed8;font-weight:700;font-size:11px;cursor:pointer}
+  /* TAHRIRLASH MODAL */
+  .edit-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:200;align-items:flex-end;justify-content:center}
+  .edit-modal.open{display:flex}
+  .edit-modal-inner{background:var(--white);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+  .edit-modal-title{font-size:15px;font-weight:900;color:var(--navy2);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+  .edit-modal-close{background:#f1f5f9;border:none;border-radius:50%;width:30px;height:30px;font-size:16px;cursor:pointer}
+  /* FORMA */
+  .forma-wrap{background:var(--white);border-radius:16px;padding:18px;box-shadow:0 4px 20px rgba(0,0,0,.07)}
+  .forma-title{font-size:16px;font-weight:900;color:var(--navy2);margin-bottom:16px}
+  .tur-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+  .tur-btn{padding:12px 0;border-radius:11px;border:2px solid;font-family:var(--sans);font-weight:800;font-size:13px;cursor:pointer}
+  .tur-btn.k-off{border-color:var(--border);background:var(--bg);color:#94a3b8}
+  .tur-btn.k-on{border-color:var(--green);background:var(--green-light);color:var(--green-dark)}
+  .tur-btn.ch-off{border-color:var(--border);background:var(--bg);color:#94a3b8}
+  .tur-btn.ch-on{border-color:var(--orange);background:var(--orange-light);color:var(--orange-dark)}
+  .label{font-size:11px;font-weight:700;color:#374151;margin-bottom:5px;margin-top:12px;display:block}
+  .inp{width:100%;padding:11px 13px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;color:var(--navy2);background:var(--bg);font-family:var(--sans);outline:none}
+  .inp:focus{border-color:var(--green)}
+  .inp-summa{font-size:24px;font-weight:900;text-align:center;font-family:var(--mono)}
+  .summa-preview{text-align:center;color:var(--slate);font-size:12px;margin-top:-6px;margin-bottom:4px;font-family:var(--mono)}
+  .kat-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+  .kat-btn{padding:6px 11px;border-radius:16px;border:1.5px solid;font-family:var(--sans);font-size:11px;font-weight:600;cursor:pointer}
+  .kat-off{border-color:var(--border);background:var(--bg);color:#64748b}
+  .kat-on-k{border-color:var(--green);background:var(--green-light);color:var(--green-dark);font-weight:800}
+  .kat-on-ch{border-color:var(--orange);background:var(--orange-light);color:var(--orange-dark);font-weight:800}
+  .tolov-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+  .tolov-btn{padding:9px 3px;border-radius:10px;border:1.5px solid;font-family:var(--sans);font-size:11px;font-weight:700;cursor:pointer;text-align:center}
+  .tv-off{border-color:var(--border);background:var(--bg);color:#94a3b8}
+  .tv-on{border-color:#3b82f6;background:#eff6ff;color:#1d4ed8}
+  .valyuta-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+  .val-btn{padding:9px 3px;border-radius:10px;border:1.5px solid;font-family:var(--mono);font-size:12px;font-weight:800;cursor:pointer;text-align:center}
+  .val-off{border-color:var(--border);background:var(--bg);color:#94a3b8}
+  .val-uzs{border-color:#059669;background:#ecfdf5;color:#065f46}
+  .val-usd{border-color:#2563eb;background:#eff6ff;color:#1e40af}
+  .val-cny{border-color:#dc2626;background:#fef2f2;color:#991b1b}
+  .ovoz-wrap{display:flex;align-items:center;gap:8px;margin-top:4px}
+  .ovoz-btn{width:42px;height:42px;border-radius:50%;border:none;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .ovoz-btn.off{background:#f1f5f9}.ovoz-btn.on{background:#fee2e2;animation:pulse 1s infinite}
+  .ovoz-matn{font-size:11px;color:var(--slate);font-style:italic;margin-top:3px}
+  .rasm-btn{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;border:1.5px dashed var(--border);background:var(--bg);cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:600;color:var(--slate);width:100%}
+  .rasm-preview{margin-top:8px;position:relative;display:inline-block}
+  .rasm-preview img{max-width:100%;max-height:180px;border-radius:10px;border:2px solid var(--border);display:block}
+  .rasm-ochir{position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;background:#dc2626;color:white;border:none;cursor:pointer;font-size:12px;font-weight:700}
+  .rasm-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.88);z-index:999;align-items:center;justify-content:center}
+  .rasm-modal.open{display:flex}
+  .rasm-modal img{max-width:95%;max-height:90vh;border-radius:12px}
+  .rasm-modal-close{position:fixed;top:16px;right:16px;background:rgba(255,255,255,.2);border:none;color:white;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer}
+  .rasm-badge{font-size:10px;background:#eff6ff;color:#1d4ed8;padding:2px 7px;border-radius:8px;cursor:pointer;font-weight:700}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  .saqlash-btn{width:100%;padding:15px;border-radius:12px;border:none;font-family:var(--sans);font-weight:900;font-size:15px;cursor:pointer;margin-top:16px}
+  .saqlash-btn.k{background:linear-gradient(135deg,#059669,#10b981);color:white;box-shadow:0 6px 20px rgba(16,185,129,.35)}
+  .saqlash-btn.ch{background:linear-gradient(135deg,#ea580c,#f97316);color:white;box-shadow:0 6px 20px rgba(249,115,22,.35)}
+  .saqlash-btn:disabled{opacity:.6}
+  .xato{background:#fee2e2;color:#dc2626;border-radius:9px;padding:9px 12px;font-size:12px;font-weight:600;margin-bottom:9px}
+  .muvaffaqiyat{background:var(--green-light);color:var(--green-dark);border-radius:9px;padding:13px;font-size:14px;font-weight:800;text-align:center}
+  /* HISOBOT */
+  .filtr-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .filtr-btn{padding:5px 11px;border-radius:16px;border:1.5px solid;font-family:var(--sans);font-size:11px;font-weight:700;cursor:pointer}
+  .f-off{border-color:var(--border);background:var(--white);color:var(--slate)}
+  .f-on{border-color:var(--green);background:var(--green-light);color:var(--green-dark)}
+  .hisobot-stat{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:12px}
+  .h-stat{border-radius:10px;padding:9px 7px;text-align:center}
+  .h-stat.k{background:var(--green-light)}.h-stat.ch{background:var(--orange-light)}.h-stat.f{background:#eff6ff}
+  .hs-label{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+  .h-stat.k .hs-label{color:var(--green-dark)}.h-stat.ch .hs-label{color:var(--orange-dark)}.h-stat.f .hs-label{color:#1d4ed8}
+  .hs-val{font-size:12px;font-weight:900;font-family:var(--mono);margin-top:2px}
+  .h-stat.k .hs-val{color:var(--green-dark)}.h-stat.ch .hs-val{color:var(--orange-dark)}.h-stat.f .hs-val{color:#1d4ed8}
+  /* MOLIYAVIY NATIJA */
+  .mol-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .mol-title{font-size:16px;font-weight:900;color:var(--navy2)}
+  .mol-oy-sel{padding:7px 12px;border-radius:10px;border:1.5px solid var(--border);font-family:var(--sans);font-size:12px;background:var(--white);outline:none;cursor:pointer}
+  .mol-balans{background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:16px;padding:20px;margin-bottom:14px;text-align:center}
+  .mol-balans-label{font-size:11px;color:#94a3b8;font-family:var(--mono)}
+  .mol-balans-sum{font-size:28px;font-weight:900;font-family:var(--mono);margin-top:4px}
+  .mol-balans-sum.plus{color:#34d399}.mol-balans-sum.minus{color:#f87171}
+  .mol-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .mol-card{background:var(--white);border-radius:14px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+  .mol-card-title{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+  .mol-card-title.k{color:var(--green-dark)}.mol-card-title.ch{color:var(--orange-dark)}
+  .mol-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f1f5f9}
+  .mol-row:last-child{border-bottom:none;font-weight:800}
+  .mol-row-label{font-size:11px;color:var(--slate)}
+  .mol-row-val{font-size:11px;font-weight:700;font-family:var(--mono)}
+  .mol-row-val.k{color:var(--green-dark)}.mol-row-val.ch{color:var(--orange-dark)}
+  /* KATEGORIYA JADVAL */
+  .kat-table{width:100%;border-collapse:collapse;background:var(--white);border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.06);margin-bottom:14px}
+  .kat-table th{background:#f1f5f9;padding:9px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--slate);letter-spacing:0.5px;text-transform:uppercase}
+  .kat-table th.right{text-align:right}
+  .kat-table td{padding:8px 10px;font-size:11px;border-bottom:1px solid #f8fafc}
+  .kat-table td.right{text-align:right;font-family:var(--mono);font-weight:700}
+  .kat-table tr:last-child td{border-bottom:none;font-weight:800;background:#f8fafc}
+  .kat-table tr.kirim-row td{color:var(--green-dark)}
+  .kat-table tr.chiqim-row td.right{color:var(--orange-dark)}
+  /* VALYUTA BLOK */
+  .val-section{margin-bottom:14px}
+  .val-section-title{font-size:12px;font-weight:800;color:var(--navy2);margin-bottom:8px;padding:8px 12px;background:var(--white);border-radius:10px;border-left:4px solid}
+  .val-section-title.uzs{border-color:#059669}.val-section-title.usd{border-color:#2563eb}.val-section-title.cny{border-color:#dc2626}
+  .empty{text-align:center;padding:36px 18px;background:var(--white);border-radius:12px;color:#94a3b8;font-size:13px}
+  .sync-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:18px;margin-top:5px}
+  .sync-badge.syncing{background:#fef3c7;color:#92400e}
+  .sync-badge.ok{background:var(--green-light);color:var(--green-dark)}
+  .sync-badge.err{background:#fee2e2;color:#dc2626}
+  .sync-dot{width:6px;height:6px;border-radius:50%}
+  .sync-dot.syncing{background:#f59e0b;animation:pulse 1s infinite}
+  .sync-dot.ok{background:var(--green)}.sync-dot.err{background:#dc2626}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <h1>&#127978; Diskaunt Navoiy</h1>
+        <div class="sub">Kassa Hisoboti</div>
+        <div id="syncBadge" class="sync-badge ok"><div class="sync-dot ok"></div><span>Tayyor</span></div>
+      </div>
+      <div class="balans">
+        <div class="balans-label">SOF FOYDA</div>
+        <div id="balansSum" class="balans-sum ijobiy">0</div>
+        <div style="font-size:9px;color:#475569;font-family:var(--mono)">UZS</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn active" onclick="sahifa('bosh')">&#127968; Bosh</button>
+      <button class="nav-btn" onclick="sahifa('qosh')">&#10133; Qo'sh</button>
+      <button class="nav-btn" onclick="sahifa('hisobot')">&#128203; Operatsiya</button>
+      <button class="nav-btn" onclick="sahifa('moliya')">&#128200; Moliya</button>
+    </nav>
+  </div>
+
+  <!-- BOSH -->
+  <div id="p-bosh" class="page active">
+    <div class="stat-grid">
+      <div class="stat-card"><div class="s-label">Kirim</div><div id="statKirim" class="s-val k">0</div></div>
+      <div class="stat-card"><div class="s-label">Chiqim</div><div id="statChiqim" class="s-val ch">0</div></div>
+      <div class="stat-card"><div class="s-label">Foyda</div><div id="statFoyda" class="s-val f">0</div></div>
+    </div>
+    <div class="tez-grid">
+      <div class="tez-btn k" onclick="tezQosh('kirim')"><div class="t-icon">&#11014;&#65039;</div><div class="t-name">KIRIM</div><div class="t-hint">Daromad kiritish</div></div>
+      <div class="tez-btn ch" onclick="tezQosh('chiqim')"><div class="t-icon">&#11015;&#65039;</div><div class="t-name">CHIQIM</div><div class="t-hint">Xarajat kiritish</div></div>
+    </div>
+    <div class="section-title">&#128336; So'nggi yozuvlar <a onclick="sahifa('hisobot')">Barchasi &rarr;</a></div>
+    <div id="boshYozuvlar"></div>
+  </div>
+
+  <!-- QO'SHISH -->
+  <div id="p-qosh" class="page">
+    <div class="forma-wrap">
+      <div class="forma-title" id="formaTur">&#11014;&#65039; Kirim qo'shish</div>
+      <div class="tur-grid">
+        <button id="btnKirim" class="tur-btn k-on" onclick="turTanla('kirim')">&#11014; KIRIM</button>
+        <button id="btnChiqim" class="tur-btn ch-off" onclick="turTanla('chiqim')">&#11015; CHIQIM</button>
+      </div>
+      <label class="label">&#128197; Sana</label>
+      <input type="date" id="fSana" class="inp">
+      <label class="label">&#128194; Kategoriya</label>
+      <div id="katGrid" class="kat-grid"></div>
+      <label class="label">&#128179; To'lov turi</label>
+      <div class="tolov-grid">
+        <button id="btnNaqt" class="tolov-btn tv-on" onclick="tolovTanla('Naqt')">&#128181; Naqt</button>
+        <button id="btnKarta" class="tolov-btn tv-off" onclick="tolovTanla('Karta')">&#128179; Karta</button>
+        <button id="btnBank" class="tolov-btn tv-off" onclick="tolovTanla('Bank')">&#127970; Bank</button>
+      </div>
+      <label class="label">&#128178; Valyuta</label>
+      <div class="valyuta-grid">
+        <button id="btnUZS" class="val-btn val-uzs" onclick="valyutaTanla('UZS')">&#127482;&#127487; UZS</button>
+        <button id="btnUSD" class="val-btn val-off" onclick="valyutaTanla('USD')">&#127482;&#127480; USD</button>
+        <button id="btnCNY" class="val-btn val-off" onclick="valyutaTanla('CNY')">&#127464;&#127475; CNY</button>
+      </div>
+      <label class="label">&#128176; Summa (<span id="valyutaLabel">UZS</span>)</label>
+      <input type="number" inputmode="numeric" id="fSumma" class="inp inp-summa" placeholder="0" oninput="summaPrev()">
+      <div id="summaPrev" class="summa-preview"></div>
+      <label class="label">&#128221; Izoh</label>
+      <div class="ovoz-wrap">
+        <button id="ovozBtn" class="ovoz-btn off" onclick="ovozToggle()">&#127908;</button>
+        <input type="text" id="fIzoh" class="inp" placeholder="Yoki mikrofon bosib gapiring..." style="margin-top:0">
+      </div>
+      <div id="ovozHolat" class="ovoz-matn"></div>
+      <label class="label">&#128247; Chek yoki hujjat (ixtiyoriy)</label>
+      <input type="file" id="rasmInput" accept="image/*" capture="environment" style="display:none" onchange="rasmTanlandi(this)">
+      <button type="button" class="rasm-btn" onclick="document.getElementById('rasmInput').click()">
+        &#128247; Kamera yoki galereyadan rasm tanlang
+      </button>
+      <div id="rasmPreview" class="rasm-preview" style="display:none">
+        <img id="rasmImg" src="" alt="chek">
+        <button class="rasm-ochir" onclick="rasmOchir()">&#10005;</button>
+      </div>
+      <div id="formaXato" class="xato" style="display:none;margin-top:12px"></div>
+      <div id="formaMuv" class="muvaffaqiyat" style="display:none;margin-top:12px"></div>
+      <button id="saqlashBtn" class="saqlash-btn k" onclick="saqlash()">&#128190; SAQLASH</button>
+    </div>
+  </div>
+
+  <!-- YOZUVLAR -->
+  <div id="p-hisobot" class="page">
+    <div class="filtr-row" id="filtrTurRow">
+      <button class="filtr-btn f-on" data-val="hammasi" onclick="filtrTur(this)">Hammasi</button>
+      <button class="filtr-btn f-off" data-val="kirim" onclick="filtrTur(this)">&#11014; Kirim</button>
+      <button class="filtr-btn f-off" data-val="chiqim" onclick="filtrTur(this)">&#11015; Chiqim</button>
+    </div>
+    <!-- Sana filtr -->
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+      <input type="date" id="filtrSanaInput" class="inp" style="flex:1;min-width:140px;padding:7px 10px;font-size:12px" onchange="filtrSanaTanla(this.value)">
+      <button id="filtrSanaTozala" onclick="filtrSanaOchir()" style="display:none;padding:7px 12px;border-radius:10px;border:1.5px solid #fca5a5;background:#fee2e2;color:#dc2626;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap">&#10005; Tozalash</button>
+    </div>
+    <div class="filtr-row" id="filtrOyRow"></div>
+    <div class="hisobot-stat">
+      <div class="h-stat k"><div class="hs-label">Kirim</div><div id="hStatK" class="hs-val">0</div></div>
+      <div class="h-stat ch"><div class="hs-label">Chiqim</div><div id="hStatCh" class="hs-val">0</div></div>
+      <div class="h-stat f"><div class="hs-label">Jami</div><div id="hStatJ" class="hs-val">0 ta</div></div>
+    </div>
+    <div id="hisobotYozuvlar"></div>
+  </div>
+
+  <!-- MOLIYAVIY NATIJA -->
+  <div id="p-moliya" class="page">
+    <div class="mol-header">
+      <div class="mol-title">&#128200; Moliyaviy Natija</div>
+      <select id="molOySel" class="mol-oy-sel" onchange="moliyaniYangilash()">
+        <option value="">Barcha oylar</option>
+      </select>
+    </div>
+    <!-- Balans -->
+    <div class="mol-balans">
+      <div class="mol-balans-label">SOF FOYDA (UZS)</div>
+      <div id="molBalans" class="mol-balans-sum plus">0 so'm</div>
+    </div>
+    <!-- Kirim / Chiqim 2 ustun -->
+    <div class="mol-2col">
+      <div class="mol-card">
+        <div class="mol-card-title k">&#11014; KIRIM</div>
+        <div class="mol-row"><span class="mol-row-label">Naqt UZS</span><span id="mKNaqtUZS" class="mol-row-val k">0</span></div>
+        <div class="mol-row"><span class="mol-row-label">Karta UZS</span><span id="mKKartaUZS" class="mol-row-val k">0</span></div>
+        <div class="mol-row"><span class="mol-row-label">Bank UZS</span><span id="mKBankUZS" class="mol-row-val k">0</span></div>
+        <div class="mol-row"><span class="mol-row-label">Naqt USD</span><span id="mKNaqtUSD" class="mol-row-val k">$0</span></div>
+        <div class="mol-row"><span class="mol-row-label">Karta USD</span><span id="mKKartaUSD" class="mol-row-val k">$0</span></div>
+        <div class="mol-row"><span class="mol-row-label">Naqt CNY</span><span id="mKNaqtCNY" class="mol-row-val k">¥0</span></div>
+        <div class="mol-row"><span class="mol-row-label">JAMI UZS</span><span id="mKJamiUZS" class="mol-row-val k">0</span></div>
+      </div>
+      <div class="mol-card">
+        <div class="mol-card-title ch">&#11015; CHIQIM</div>
+        <div class="mol-row"><span class="mol-row-label">Naqt UZS</span><span id="mChNaqtUZS" class="mol-row-val ch">0</span></div>
+        <div class="mol-row"><span class="mol-row-label">Karta UZS</span><span id="mChKartaUZS" class="mol-row-val ch">0</span></div>
+        <div class="mol-row"><span class="mol-row-label">Bank UZS</span><span id="mChBankUZS" class="mol-row-val ch">0</span></div>
+        <div class="mol-row"><span class="mol-row-label">Naqt USD</span><span id="mChNaqtUSD" class="mol-row-val ch">$0</span></div>
+        <div class="mol-row"><span class="mol-row-label">Karta USD</span><span id="mChKartaUSD" class="mol-row-val ch">$0</span></div>
+        <div class="mol-row"><span class="mol-row-label">Naqt CNY</span><span id="mChNaqtCNY" class="mol-row-val ch">¥0</span></div>
+        <div class="mol-row"><span class="mol-row-label">JAMI UZS</span><span id="mChJamiUZS" class="mol-row-val ch">0</span></div>
+      </div>
+    </div>
+
+    <!-- Kategoriya jadvali -->
+    <div class="section-title" style="margin-bottom:10px">&#128202; Kategoriyalar bo'yicha chiqim</div>
+    <table class="kat-table" id="katTable">
+      <thead><tr><th>Kategoriya</th><th class="right">UZS</th><th class="right">USD</th><th class="right">CNY</th></tr></thead>
+      <tbody id="katTableBody"></tbody>
+    </table>
+
+    <!-- Kirim kategoriyalari -->
+    <div class="section-title" style="margin-bottom:10px">&#128202; Kategoriyalar bo'yicha kirim</div>
+    <table class="kat-table" id="katKirimTable">
+      <thead><tr><th>Kategoriya</th><th class="right">UZS</th><th class="right">USD</th><th class="right">CNY</th></tr></thead>
+      <tbody id="katKirimTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbyYL6QZR1sdGTU_9s-LeEI5s4_xN6GVqiIXQpoptbAtYvgFSEhspWZyxlQf9sEKk773dA/exec';
+const KATEGORIYALAR={
+  kirim:['Daromad','Boshqa kirim'],
+  chiqim:['Tushlik','Ish haqi','Tovarga',"Boshqa to'lovlar","Kommunal to'lov","Yo'l kira",'Reklama xarajatlari','Cargo xizmati','Internet','Dadaxon','Shukur','Sotuv xarajati','Konvertatsiya','Soliq','Bank xizmati',"Foizlar o'tkazmalardagi",'Yoqilg\'i xarajatlari','Jarimalar','Tovar sotib olish','Ijara','Qarz berilgan']
+};
+const SYM={UZS:"so'm",USD:'$',CNY:'¥'};
+let state={tur:'kirim',kategoriya:'Daromad',tolov:'Naqt',valyuta:'UZS',filtrTur:'hammasi',filtrOy:'',filtrSana:'',yozuvlar:[],ochiqId:null};
+let recognition=null,ovozYozilmoqda=false;
+
+window.onload=()=>{
+  document.getElementById('fSana').value=bugun();
+  katlarni_korsatish();localdan_yuklash();sahifani_yangilash();sheetsdan_yuklash();
+};
+function bugun(){return new Date().toISOString().slice(0,10)}
+function localga_saqlash(){localStorage.setItem('dn_yozuvlar',JSON.stringify(state.yozuvlar))}
+function localdan_yuklash(){try{const d=localStorage.getItem('dn_yozuvlar');if(d)state.yozuvlar=JSON.parse(d)}catch(e){}}
+function n(v){return Number(v||0).toLocaleString('uz-UZ')}
+
+// TAHRIRLASH
+let editId=null,editTur='kirim',editTolov='Naqt',editValyuta='UZS',editKat='';
+
+function editModalOch(id){
+  const y=state.yozuvlar.find(y=>String(y.id)===String(id));if(!y)return;
+  editId=id;editTur=y.tur;editTolov=y.tolov||'Naqt';editValyuta=y.valyuta||'UZS';editKat=y.kategoriya;
+  document.getElementById('editSana').value=sanaNorm(y.sana);
+  document.getElementById('editSumma').value=y.summa;
+  document.getElementById('editIzoh').value=y.izoh||'';
+  editKatlarni_korsatish();editTolovTanla(editTolov);editValyutaTanla(editValyuta);
+  document.getElementById('editModal').classList.add('open');
+}
+function editModalYop(e){
+  if(e&&e.target!==document.getElementById('editModal'))return;
+  document.getElementById('editModal').classList.remove('open');editId=null;
+}
+function editKatlarni_korsatish(){
+  const g=document.getElementById('editKatGrid');g.innerHTML='';
+  KATEGORIYALAR[editTur].forEach(k=>{
+    const b=document.createElement('button');
+    b.className='kat-btn '+(k===editKat?'kat-on-'+editTur[0]:'kat-off');
+    b.textContent=k;b.onclick=()=>{editKat=k;editKatlarni_korsatish()};
+    g.appendChild(b);
+  });
+}
+function editTolovTanla(t){
+  editTolov=t;
+  ['Naqt','Karta','Bank'].forEach(v=>document.getElementById('editBtn'+v).className='tolov-btn '+(t===v?'tv-on':'tv-off'));
+}
+function editValyutaTanla(v){
+  editValyuta=v;
+  document.getElementById('editBtnUZS').className='val-btn '+(v==='UZS'?'val-uzs':'val-off');
+  document.getElementById('editBtnUSD').className='val-btn '+(v==='USD'?'val-usd':'val-off');
+  document.getElementById('editBtnCNY').className='val-btn '+(v==='CNY'?'val-cny':'val-off');
+}
+async function editSaqlash(){
+  const summa=parseFloat(document.getElementById('editSumma').value);
+  const sana=document.getElementById('editSana').value;
+  const izoh=document.getElementById('editIzoh').value.trim();
+  if(!summa||summa<=0){alert("Summa to'g'ri kiritilmadi!");return}
+  if(!sana){alert('Sana tanlanmadi!');return}
+  const idx=state.yozuvlar.findIndex(y=>String(y.id)===String(editId));if(idx===-1)return;
+  state.yozuvlar[idx]={...state.yozuvlar[idx],sana,kategoriya:editKat,tolov:editTolov,valyuta:editValyuta,summa,izoh};
+  localga_saqlash();sahifani_yangilash();hisobotni_yangilash();
+  document.getElementById('editModal').classList.remove('open');editId=null;
+  await sheetsga_yozish(state.yozuvlar[idx],'update');
+}
+
+let rasmData = null;
+
+function rasmTanlandi(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    rasmData = e.target.result;
+    document.getElementById('rasmImg').src = rasmData;
+    document.getElementById('rasmPreview').style.display = 'inline-block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function rasmOchir() {
+  rasmData = null;
+  document.getElementById('rasmInput').value = '';
+  document.getElementById('rasmPreview').style.display = 'none';
+  document.getElementById('rasmImg').src = '';
+}
+
+function rasmModalKor(id) {
+  const y = state.yozuvlar.find(y => String(y.id) === String(id));
+  if (!y || !y.rasm) return;
+  document.getElementById('rasmModalImg').src = y.rasm;
+  document.getElementById('rasmModal').classList.add('open');
+}
+
+function rasmModalYop() {
+  document.getElementById('rasmModal').classList.remove('open');
+}
+
+// OVOZ
+function ovozToggle(){
+  if(!('webkitSpeechRecognition'in window)&&!('SpeechRecognition'in window)){alert("Chrome ishlatib ko'ring.");return}
+  ovozYozilmoqda?ovozToxtatish():ovozBoshlash();
+}
+function ovozBoshlash(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();recognition.lang='uz-UZ';recognition.continuous=false;recognition.interimResults=true;
+  recognition.onstart=()=>{ovozYozilmoqda=true;document.getElementById('ovozBtn').className='ovoz-btn on';document.getElementById('ovozBtn').innerHTML='&#9209;';document.getElementById('ovozHolat').textContent='Gapiring...';};
+  recognition.onresult=(e)=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;document.getElementById('fIzoh').value=t;};
+  recognition.onend=()=>ovozToxtatish();recognition.onerror=()=>ovozToxtatish();
+  recognition.start();
+}
+function ovozToxtatish(){
+  ovozYozilmoqda=false;if(recognition)try{recognition.stop()}catch(e){}
+  document.getElementById('ovozBtn').className='ovoz-btn off';document.getElementById('ovozBtn').innerHTML='&#127908;';document.getElementById('ovozHolat').textContent='';
+}
+
+// SHEETS
+async function sheetsga_yozish(y,action){
+  syncHolat('syncing','Saqlanmoqda...');
+  try{
+    await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({
+        action:action||'add',
+        id:y.id,
+        sana:y.sana,
+        tur:y.tur==='kirim'?'Kirim':'Chiqim',
+        kategoriya:y.kategoriya,
+        tolov:y.tolov,
+        valyuta:y.valyuta||'UZS',
+        summa:y.summa,
+        izoh:y.izoh||''
+      })});
+    syncHolat('ok','Sheets ga saqlandi');setTimeout(()=>syncHolat('ok','Tayyor'),3000);
+  }catch(e){syncHolat('err','Local saqlandi');setTimeout(()=>syncHolat('ok','Tayyor'),4000)}
+}
+async function sheetsdan_yuklash(){
+  try{
+    syncHolat('syncing','Yuklanmoqda...');
+    const r=await fetch(APPS_SCRIPT_URL);const d=await r.json();
+    if(d.data&&d.data.length>0){
+      const sv=d.data.filter(r=>r.sana&&r.summa).map((r,i)=>({
+        id: r.id||('sheet_'+i+'_'+r.sana),
+        sana:r.sana||'',
+        tur:(r.tur||'').toLowerCase()==='kirim'?'kirim':'chiqim',
+        kategoriya:r.kategoriya||'',
+        tolov:r.tolov||'Naqt',
+        valyuta:r.valyuta||'UZS',
+        summa:parseFloat(r.summa)||0,
+        izoh:r.izoh||''
+      }));
+      const ly=state.yozuvlar.filter(y=>!y.id.toString().startsWith('sheet_'));
+      state.yozuvlar=[...ly,...sv];state.yozuvlar.sort((a,b)=>b.sana.localeCompare(a.sana));
+      localga_saqlash();sahifani_yangilash();
+    }
+    syncHolat('ok','Tayyor');
+  }catch(e){syncHolat('err','Offline rejim');setTimeout(()=>syncHolat('ok','Tayyor'),3000)}
+}
+function syncHolat(h,t){
+  const b=document.getElementById('syncBadge');b.className='sync-badge '+h;b.querySelector('.sync-dot').className='sync-dot '+h;b.querySelector('span').textContent=t;
+}
+
+// NAVIGATSIYA
+function sahifa(n){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('p-'+n).classList.add('active');
+  document.querySelectorAll('.nav-btn')[{bosh:0,qosh:1,hisobot:2,moliya:3}[n]].classList.add('active');
+  if(n==='hisobot')hisobotni_yangilash();
+  if(n==='moliya')moliyaniYangilash();
+}
+function tezQosh(t){turTanla(t);sahifa('qosh')}
+
+// FORMA
+function turTanla(t){
+  state.tur=t;state.kategoriya=KATEGORIYALAR[t][0];
+  document.getElementById('formaTur').textContent=t==='kirim'?"Kirim qo'shish":"Chiqim qo'shish";
+  document.getElementById('btnKirim').className=t==='kirim'?'tur-btn k-on':'tur-btn k-off';
+  document.getElementById('btnChiqim').className=t==='chiqim'?'tur-btn ch-on':'tur-btn ch-off';
+  document.getElementById('saqlashBtn').className='saqlash-btn '+(t==='kirim'?'k':'ch');
+  katlarni_korsatish();
+}
+function katlarni_korsatish(){
+  const g=document.getElementById('katGrid');g.innerHTML='';
+  KATEGORIYALAR[state.tur].forEach(k=>{
+    const b=document.createElement('button');
+    b.className='kat-btn '+(k===state.kategoriya?'kat-on-'+state.tur[0]:'kat-off');
+    b.textContent=k;b.onclick=()=>{state.kategoriya=k;katlarni_korsatish()};
+    g.appendChild(b);
+  });
+}
+function tolovTanla(t){
+  state.tolov=t;
+  ['Naqt','Karta','Bank'].forEach(v=>document.getElementById('btn'+v).className='tolov-btn '+(t===v?'tv-on':'tv-off'));
+}
+function valyutaTanla(v){
+  state.valyuta=v;
+  document.getElementById('btnUZS').className='val-btn '+(v==='UZS'?'val-uzs':'val-off');
+  document.getElementById('btnUSD').className='val-btn '+(v==='USD'?'val-usd':'val-off');
+  document.getElementById('btnCNY').className='val-btn '+(v==='CNY'?'val-cny':'val-off');
+  document.getElementById('valyutaLabel').textContent=v;summaPrev();
+}
+function summaPrev(){
+  const v=document.getElementById('fSumma').value;const e=document.getElementById('summaPrev');
+  if(v&&!isNaN(v)&&Number(v)>0)e.textContent=Number(v).toLocaleString('uz-UZ')+' '+SYM[state.valyuta];
+  else e.textContent='';
+}
+async function saqlash(){
+  const summa=parseFloat(document.getElementById('fSumma').value);
+  const sana=document.getElementById('fSana').value;
+  const izoh=document.getElementById('fIzoh').value.trim();
+  document.getElementById('formaXato').style.display='none';document.getElementById('formaMuv').style.display='none';
+  if(!summa||summa<=0){document.getElementById('formaXato').textContent="Summa to'g'ri kiritilmadi!";document.getElementById('formaXato').style.display='block';return}
+  if(!sana){document.getElementById('formaXato').textContent='Sana tanlanmadi!';document.getElementById('formaXato').style.display='block';return}
+  const btn=document.getElementById('saqlashBtn');btn.disabled=true;btn.textContent='Saqlanmoqda...';
+  const y={id:Date.now(),sana,tur:state.tur,kategoriya:state.kategoriya,tolov:state.tolov,valyuta:state.valyuta,summa,izoh,rasm:rasmData||null};
+  state.yozuvlar.unshift(y);localga_saqlash();sahifani_yangilash();
+  await sheetsga_yozish(y);
+  document.getElementById('fSumma').value='';document.getElementById('fIzoh').value='';document.getElementById('summaPrev').textContent='';
+  rasmOchir();
+  document.getElementById('formaMuv').textContent='Saqlandi! Google Sheets ga yuborildi.';document.getElementById('formaMuv').style.display='block';
+  btn.disabled=false;btn.textContent='SAQLASH';btn.className='saqlash-btn '+(state.tur==='kirim'?'k':'ch');
+  setTimeout(()=>{document.getElementById('formaMuv').style.display='none';sahifa('bosh')},1800);
+}
+
+// KO'RINISH
+function sahifani_yangilash(){
+  const k=state.yozuvlar.filter(y=>y.tur==='kirim'&&y.valyuta==='UZS').reduce((s,y)=>s+y.summa,0);
+  const ch=state.yozuvlar.filter(y=>y.tur==='chiqim'&&y.valyuta==='UZS').reduce((s,y)=>s+y.summa,0);
+  const f=k-ch;
+  document.getElementById('statKirim').textContent=n(k);
+  document.getElementById('statChiqim').textContent=n(ch);
+  document.getElementById('statFoyda').textContent=n(f);
+  const bs=document.getElementById('balansSum');
+  bs.textContent=(f>=0?'+':'')+n(f);bs.className='balans-sum '+(f>=0?'ijobiy':'salbiy');
+  const el=document.getElementById('boshYozuvlar');
+  el.innerHTML=state.yozuvlar.length===0?'<div class="empty">Hali yozuv yoq</div>':state.yozuvlar.slice(0,6).map(y=>yozuvHTML(y)).join('');
+  oylarniYangilash();
+}
+
+function yozuvHTML(y){
+  const cls=y.tur==='kirim'?'k':'ch';const sign=y.tur==='kirim'?'+':'-';
+  const ochiq=String(state.ochiqId)===String(y.id);const sym=SYM[y.valyuta||'UZS']||'';
+  const idStr=JSON.stringify(y.id);
+  const sana = sanaKo(y.sana);
+  return '<div class="yozuv-karta '+cls+'" onclick="kartaTog('+idStr+')">'
+    +'<div class="yk-top"><div class="yk-icon">'+(y.tur==='kirim'?'&#11014;':'&#11015;')+'</div>'
+    +'<div class="yk-body"><div class="yk-row1">'
+    +'<span class="yk-badge '+cls+'">'+y.kategoriya+'</span>'
+    +'<span class="yk-sum '+cls+'">'+sign+n(y.summa)+' '+sym+'</span>'
+    +'</div><div class="yk-row2">'
+    +'<span class="yk-meta">'+sana+' &middot; '+(y.tolov||'')+'</span>'
+    +(y.izoh?'<span class="yk-izoh">"'+y.izoh+'"</span>':'')
+    +'</div>'
+    +(y.rasm?'<div style="margin-top:4px"><span class="rasm-badge" onclick="event.stopPropagation();rasmModalKor('+idStr+')">&#128247; Chek bor</span></div>':'')
+    +'</div></div>'
+    +'<div class="yk-delete '+(ochiq?'show':'')+'" onclick="event.stopPropagation()">'
+    +'<button class="edit-btn" onclick="editModalOch('+idStr+')">✏️ Tahrirlash</button>'
+    +(y.rasm?'<img src="'+y.rasm+'" style="max-width:100%;border-radius:8px;margin-bottom:8px;cursor:pointer" onclick="rasmModalKor('+idStr+')">':'')
+    +'<button class="del-btn" onclick="ochirish('+idStr+')">🗑 O\'chirish</button>'
+    +'</div></div>';
+}
+function kartaTog(id){
+  const sid=String(id);
+  state.ochiqId=String(state.ochiqId)===sid?null:sid;
+  sahifani_yangilash();hisobotni_yangilash();
+}
+function ochirish(id){
+  if(!confirm("O'chirishni tasdiqlaysizmi?"))return;
+  const y=state.yozuvlar.find(y=>String(y.id)===String(id));
+  state.yozuvlar=state.yozuvlar.filter(y=>String(y.id)!==String(id));
+  state.ochiqId=null;
+  localga_saqlash();sahifani_yangilash();hisobotni_yangilash();
+  if(y) sheetsga_yozish(y,'delete');
+}
+
+// HISOBOT
+function filtrSanaTanla(v){
+  state.filtrSana=v;state.filtrOy='';
+  document.querySelectorAll('#filtrOyRow .filtr-btn').forEach(b=>b.className='filtr-btn f-off');
+  const toza=document.getElementById('filtrSanaTozala');
+  if(toza)toza.style.display=v?'block':'none';
+  hisobotni_yangilash();
+}
+function filtrSanaOchir(){
+  state.filtrSana='';
+  const inp=document.getElementById('filtrSanaInput');if(inp)inp.value='';
+  const toza=document.getElementById('filtrSanaTozala');if(toza)toza.style.display='none';
+  hisobotni_yangilash();
+}
+function sanaNorm(s){if(!s)return '';return s.toString().slice(0,10)}
+function sanaKo(s){
+  const d=sanaNorm(s);if(!d||d.length<10)return d;
+  const [y,m,g]=d.split('-');return g+'.'+m+'.'+y;
+}
+function filtrTur(btn){
+  state.filtrTur=btn.dataset.val;
+  document.querySelectorAll('#filtrTurRow .filtr-btn').forEach(b=>b.className='filtr-btn '+(b===btn?'f-on':'f-off'));
+  hisobotni_yangilash();
+}
+function filtrOyTanla(btn,oy){
+  state.filtrOy=oy;document.querySelectorAll('#filtrOyRow .filtr-btn').forEach(b=>b.className='filtr-btn f-off');
+  btn.className='filtr-btn f-on';hisobotni_yangilash();
+}
+function hisobotni_yangilash(){
+  const oySet=new Set(state.yozuvlar.map(y=>sanaNorm(y.sana).slice(0,7)).filter(Boolean));
+  const oylar=[...oySet].sort().reverse();
+  const oyRow=document.getElementById('filtrOyRow');
+  oyRow.innerHTML='<button class="filtr-btn '+(!state.filtrOy?'f-on':'f-off')+'" onclick="filtrOyTanla(this,\'\')">Barcha oylar</button>';
+  oylar.forEach(oy=>{
+    const d=new Date(oy+'-01');const nom=d.toLocaleDateString('uz-UZ',{month:'short',year:'numeric'});
+    oyRow.innerHTML+='<button class="filtr-btn '+(state.filtrOy===oy?'f-on':'f-off')+'" onclick="filtrOyTanla(this,\''+oy+'\')">'+nom+'</button>';
+  });
+  const fil=state.yozuvlar.filter(y=>{
+    if(state.filtrTur!=='hammasi'&&y.tur!==state.filtrTur)return false;
+    if(state.filtrOy&&!sanaNorm(y.sana).startsWith(state.filtrOy))return false;
+    if(state.filtrSana&&sanaNorm(y.sana)!==state.filtrSana)return false;
+    return true;
+  });
+  document.getElementById('hStatK').textContent=n(fil.filter(y=>y.tur==='kirim'&&y.valyuta==='UZS').reduce((s,y)=>s+y.summa,0));
+  document.getElementById('hStatCh').textContent=n(fil.filter(y=>y.tur==='chiqim'&&y.valyuta==='UZS').reduce((s,y)=>s+y.summa,0));
+  document.getElementById('hStatJ').textContent=fil.length+' ta';
+  const el=document.getElementById('hisobotYozuvlar');
+  el.innerHTML=fil.length===0?'<div class="empty">Yozuv topilmadi</div>':fil.map(y=>yozuvHTML(y)).join('');
+}
+
+// OYLAR
+function oylarniYangilash(){
+  const oySet=new Set(state.yozuvlar.map(y=>sanaNorm(y.sana).slice(0,7)).filter(Boolean));
+  const oylar=[...oySet].sort().reverse();
+  const sel=document.getElementById('molOySel');
+  const cur=sel.value;sel.innerHTML='<option value="">Barcha oylar</option>';
+  oylar.forEach(oy=>{
+    const d=new Date(oy+'-01');const nom=d.toLocaleDateString('uz-UZ',{month:'long',year:'numeric'});
+    sel.innerHTML+='<option value="'+oy+'"'+(cur===oy?' selected':'')+'>'+nom+'</option>';
+  });
+}
+
+// MOLIYAVIY NATIJA
+function moliyaniYangilash(){
+  const filtrOy=document.getElementById('molOySel').value;
+  const fil=state.yozuvlar.filter(y=>!filtrOy||y.sana.startsWith(filtrOy));
+
+  // Kirim bo'yicha
+  const sum=(tur,tolov,val)=>fil.filter(y=>y.tur===tur&&y.tolov===tolov&&(y.valyuta||'UZS')===val).reduce((s,y)=>s+y.summa,0);
+
+  // Kirim UZS
+  document.getElementById('mKNaqtUZS').textContent=n(sum('kirim','Naqt','UZS'));
+  document.getElementById('mKKartaUZS').textContent=n(sum('kirim','Karta','UZS'));
+  document.getElementById('mKBankUZS').textContent=n(sum('kirim','Bank','UZS'));
+  document.getElementById('mKNaqtUSD').textContent='$'+n(sum('kirim','Naqt','USD'));
+  document.getElementById('mKKartaUSD').textContent='$'+n(sum('kirim','Karta','USD'));
+  document.getElementById('mKNaqtCNY').textContent='¥'+n(sum('kirim','Naqt','CNY'));
+  const kJamiUZS=fil.filter(y=>y.tur==='kirim'&&(y.valyuta||'UZS')==='UZS').reduce((s,y)=>s+y.summa,0);
+  document.getElementById('mKJamiUZS').textContent=n(kJamiUZS);
+
+  // Chiqim UZS
+  document.getElementById('mChNaqtUZS').textContent=n(sum('chiqim','Naqt','UZS'));
+  document.getElementById('mChKartaUZS').textContent=n(sum('chiqim','Karta','UZS'));
+  document.getElementById('mChBankUZS').textContent=n(sum('chiqim','Bank','UZS'));
+  document.getElementById('mChNaqtUSD').textContent='$'+n(sum('chiqim','Naqt','USD'));
+  document.getElementById('mChKartaUSD').textContent='$'+n(sum('chiqim','Karta','USD'));
+  document.getElementById('mChNaqtCNY').textContent='¥'+n(sum('chiqim','Naqt','CNY'));
+  const chJamiUZS=fil.filter(y=>y.tur==='chiqim'&&(y.valyuta||'UZS')==='UZS').reduce((s,y)=>s+y.summa,0);
+  document.getElementById('mChJamiUZS').textContent=n(chJamiUZS);
+
+  // Balans
+  const foyda=kJamiUZS-chJamiUZS;
+  const mb=document.getElementById('molBalans');
+  mb.textContent=(foyda>=0?'+':'')+n(foyda)+" so'm";
+  mb.className='mol-balans-sum '+(foyda>=0?'plus':'minus');
+
+  // Chiqim kategoriya jadvali
+  const chiqimKat={};
+  fil.filter(y=>y.tur==='chiqim').forEach(y=>{
+    const k=y.kategoriya||'Boshqa';const v=y.valyuta||'UZS';
+    if(!chiqimKat[k])chiqimKat[k]={UZS:0,USD:0,CNY:0};
+    chiqimKat[k][v]+=y.summa;
+  });
+  let tbody=document.getElementById('katTableBody');tbody.innerHTML='';
+  let totUZS=0,totUSD=0,totCNY=0;
+  Object.entries(chiqimKat).sort((a,b)=>b[1].UZS-a[1].UZS).forEach(([k,v])=>{
+    totUZS+=v.UZS;totUSD+=v.USD;totCNY+=v.CNY;
+    tbody.innerHTML+='<tr class="chiqim-row"><td>'+k+'</td><td class="right">'+n(v.UZS)+'</td><td class="right">'+(v.USD?'$'+n(v.USD):'-')+'</td><td class="right">'+(v.CNY?'¥'+n(v.CNY):'-')+'</td></tr>';
+  });
+  tbody.innerHTML+='<tr><td>JAMI</td><td class="right">'+n(totUZS)+'</td><td class="right">'+(totUSD?'$'+n(totUSD):'-')+'</td><td class="right">'+(totCNY?'¥'+n(totCNY):'-')+'</td></tr>';
+
+  // Kirim kategoriya jadvali
+  const kirimKat={};
+  fil.filter(y=>y.tur==='kirim').forEach(y=>{
+    const k=y.kategoriya||'Boshqa';const v=y.valyuta||'UZS';
+    if(!kirimKat[k])kirimKat[k]={UZS:0,USD:0,CNY:0};
+    kirimKat[k][v]+=y.summa;
+  });
+  let kbody=document.getElementById('katKirimTableBody');kbody.innerHTML='';
+  let ktotUZS=0,ktotUSD=0,ktotCNY=0;
+  Object.entries(kirimKat).sort((a,b)=>b[1].UZS-a[1].UZS).forEach(([k,v])=>{
+    ktotUZS+=v.UZS;ktotUSD+=v.USD;ktotCNY+=v.CNY;
+    kbody.innerHTML+='<tr class="kirim-row"><td>'+k+'</td><td class="right">'+n(v.UZS)+'</td><td class="right">'+(v.USD?'$'+n(v.USD):'-')+'</td><td class="right">'+(v.CNY?'¥'+n(v.CNY):'-')+'</td></tr>';
+  });
+  kbody.innerHTML+='<tr><td>JAMI</td><td class="right">'+n(ktotUZS)+'</td><td class="right">'+(ktotUSD?'$'+n(ktotUSD):'-')+'</td><td class="right">'+(ktotCNY?'¥'+n(ktotCNY):'-')+'</td></tr>';
+}
+</script>
+<!-- TAHRIRLASH MODAL -->
+<div id="editModal" class="edit-modal" onclick="editModalYop(event)">
+  <div class="edit-modal-inner" onclick="event.stopPropagation()">
+    <div class="edit-modal-title">
+      ✏️ Tahrirlash
+      <button class="edit-modal-close" onclick="editModalYop()">✕</button>
+    </div>
+    <label class="label">📅 Sana</label>
+    <input type="date" id="editSana" class="inp">
+    <label class="label">📂 Kategoriya</label>
+    <div id="editKatGrid" class="kat-grid"></div>
+    <label class="label">💳 To'lov turi</label>
+    <div class="tolov-grid">
+      <button id="editBtnNaqt" class="tolov-btn tv-on" onclick="editTolovTanla('Naqt')">💵 Naqt</button>
+      <button id="editBtnKarta" class="tolov-btn tv-off" onclick="editTolovTanla('Karta')">💳 Karta</button>
+      <button id="editBtnBank" class="tolov-btn tv-off" onclick="editTolovTanla('Bank')">🏦 Bank</button>
+    </div>
+    <label class="label">💱 Valyuta</label>
+    <div class="valyuta-grid">
+      <button id="editBtnUZS" class="val-btn val-uzs" onclick="editValyutaTanla('UZS')">🇺🇿 UZS</button>
+      <button id="editBtnUSD" class="val-btn val-off" onclick="editValyutaTanla('USD')">🇺🇸 USD</button>
+      <button id="editBtnCNY" class="val-btn val-off" onclick="editValyutaTanla('CNY')">🇨🇳 CNY</button>
+    </div>
+    <label class="label">💰 Summa</label>
+    <input type="number" inputmode="numeric" id="editSumma" class="inp inp-summa" placeholder="0">
+    <label class="label">📝 Izoh</label>
+    <input type="text" id="editIzoh" class="inp" placeholder="Izoh...">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px">
+      <button onclick="editModalYop()" style="padding:13px;border-radius:11px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--sans);font-weight:700;font-size:14px;cursor:pointer;color:var(--slate)">Bekor qilish</button>
+      <button onclick="editSaqlash()" style="padding:13px;border-radius:11px;border:none;background:linear-gradient(135deg,#2563eb,#3b82f6);color:white;font-family:var(--sans);font-weight:900;font-size:14px;cursor:pointer">✅ Saqlash</button>
+    </div>
+  </div>
+</div>
+<!-- RASM MODAL -->
+<div id="rasmModal" class="rasm-modal" onclick="rasmModalYop()">
+  <button class="rasm-modal-close" onclick="rasmModalYop()">&#10005;</button>
+  <img id="rasmModalImg" src="" alt="chek">
+</div>
+</body>
+</html>
